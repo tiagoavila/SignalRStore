@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using SignalRStore.API.HubConfig;
 using SignalRStore.API.VirtualDataLayer;
 
 namespace SignalRStore.API.Controllers
@@ -9,10 +12,17 @@ namespace SignalRStore.API.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
+        private IHubContext<ProductHub> _hub;
+
+        public ProductController(IHubContext<ProductHub> hub)
+        {
+            _hub = hub;
+        }
+
         // GET: api/Product
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult Get()
+        public IActionResult GetAll()
         {
             return Ok(ProductRepository.GetAll());
         }
@@ -36,11 +46,15 @@ namespace SignalRStore.API.Controllers
         [HttpPut("{id}/{quantityToUpdate}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Put(Guid id, int quantityToUpdate)
+        public async Task<IActionResult> Put(Guid id, int quantityToUpdate)
         {
             var canUpdate = ProductRepository.UpdateQuantity(id, quantityToUpdate);
             if (canUpdate)
             {
+                var updatedProduct = ProductRepository.GetById(id);
+
+                await _hub.Clients.All.SendAsync($"ProductStock-{updatedProduct.Id}", updatedProduct.Quantity);
+
                 return NoContent();
             }
 
