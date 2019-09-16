@@ -8,5 +8,9 @@ namespace SignalRStore.API.HubConfig
 {
     public class ProductHub : Hub
     {
+        public async Task BroadcastNumber(int number)
+        {
+            await Clients.All.SendAsync("broadcastnumberchannel", number);
+        }
     }
 }

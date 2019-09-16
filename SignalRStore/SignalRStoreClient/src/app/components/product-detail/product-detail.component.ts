@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { ProductRestService } from './../../service/product-rest.service';
+import { SignalRService } from './../../service/signal-r.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -18,7 +19,8 @@ export class ProductDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private productRest: ProductRestService) { }
+    private productRest: ProductRestService,
+    private signalRService: SignalRService) { }
 
   ngOnInit() {
     this.productId = this.route.snapshot.params.id;
@@ -26,6 +28,10 @@ export class ProductDetailComponent implements OnInit {
       this.product = data;
       this.availableQuantity = (data as any).quantity;
     });
+
+    this.signalRService.startConnection();
+    this.signalRService.addBroadcastNumberListener();
+    this.signalRService.addProductQuantityAvailableListener(this.productId);
   }
 
   addProductToCart() {
