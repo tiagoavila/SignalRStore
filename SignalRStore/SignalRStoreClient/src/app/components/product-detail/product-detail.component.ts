@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ProductRestService } from './../../service/product-rest.service';
 import { SignalRService } from './../../service/signal-r.service';
+import { map, tap, filter, scan, retry, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-detail',
@@ -30,8 +31,19 @@ export class ProductDetailComponent implements OnInit {
     });
 
     this.signalRService.startConnection();
-    this.signalRService.addBroadcastNumberListener();
     this.signalRService.addProductQuantityAvailableListener(this.productId);
+
+    this.signalRService.productSubject
+      .pipe(
+        filter(updatedProduct => updatedProduct.id == this.productId)
+      )
+      .subscribe(updatedProduct => {
+        if (updatedProduct) {
+          console.log("Updated Product => " + JSON.stringify(updatedProduct));
+
+          this.availableQuantity = updatedProduct.quantity;
+        }
+      });
   }
 
   addProductToCart() {

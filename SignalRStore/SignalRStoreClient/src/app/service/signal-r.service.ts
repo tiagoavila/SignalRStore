@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as signalR from "@aspnet/signalr";
 import { Subject } from 'rxjs';
+import { ProductModel } from '../models/product-model';
 
 @Injectable({
   providedIn: 'root'
@@ -8,9 +9,9 @@ import { Subject } from 'rxjs';
 export class SignalRService {
   private hubConnection: signalR.HubConnection;
 
-  public bradcastedNumber: Number;
+  public bradcastedNumber: ProductModel;
 
-  message = new Subject<number>();
+  public productSubject = new Subject<ProductModel>();
 
   constructor() { }
 
@@ -25,26 +26,12 @@ export class SignalRService {
       .catch(err => console.log('Error while starting connection: ' + err))
   }
 
-  public broadcastNumber = (number: Number) => {
-    this.hubConnection.invoke('broadcastnumber', number) //broadcastnumber is the method name on the server
-      .catch(err => console.error(err));
-  }
-
-  public addBroadcastNumberListener = () => {
-    //broadcastnumberchannel is the name of the method on the server
-    this.hubConnection.on('broadcastnumberchannel', (data) => {
-      this.bradcastedNumber = data;
-      console.log(data);
-    })
-  }
-
   public addProductQuantityAvailableListener = (productId: any) => {
     //broadcastnumberchannel is the name of the method on the server
     let methodName = 'ProductStock-' + productId;
 
     this.hubConnection.on(methodName, (data) => {
-      this.bradcastedNumber = data;
-      console.log("Update quantity for product " + productId + " is: " + data);
+      this.productSubject.next(data as ProductModel);
     })
   }
 }

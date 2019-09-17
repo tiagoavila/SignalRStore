@@ -53,7 +53,7 @@ namespace SignalRStore.API.Controllers
             {
                 var updatedProduct = ProductRepository.GetById(id);
 
-                await _hub.Clients.All.SendAsync($"ProductStock-{updatedProduct.Id}", updatedProduct.Quantity);
+                await _hub.Clients.All.SendAsync($"ProductStock-{updatedProduct.Id}", updatedProduct);
 
                 return NoContent();
             }
